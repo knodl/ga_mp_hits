@@ -1,1 +1,1 @@
-Pythjon implementation of sending events and transactions to Google Analytics via Measurement protocol.
+Python implementation of sending events and transactions to Google Analytics via Measurement protocol.
