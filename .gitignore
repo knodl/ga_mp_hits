@@ -1,3 +1,5 @@
 *.yml
 *.log
+*.csv
+sql_queries.py
 __pycache__
