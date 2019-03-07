@@ -1,9 +1,10 @@
 import requests
 
-DAYS_DELTA = 30
+DAYS_DELTA = 1
 DATE_FORMAT = "%Y-%m-%d"
 REGS_FILE = "regs.csv"
 DEBUG = False  # whether hits are sent to debug url
+
 
 class Sender:
     """
@@ -25,8 +26,7 @@ class Sender:
         Sends hit using measurement protocol. 
         https://developers.google.com/analytics/devguides/collection/protocol/v1/devguide
         """
-        r = requests.post(self.url, data=payload, headers=self.headers)
-        
+        r = requests.post(self.url, data=payload, headers=self.headers)      
         return r
 
 
@@ -34,8 +34,9 @@ if __name__ == "__main__":
 
     import datetime
     import pandas as pd
-    from utils import (transaction, registration, string_date, read_yaml_config,
-                       check_query_result, SaveResults, check_user)
+    from utils import (transaction, registration, string_date, 
+                       read_yaml_config, check_query_result, SaveResults, 
+                       check_user)
     from sql_queries import REGS_QUERY
     from dataloader import Vertica
 
@@ -47,8 +48,11 @@ if __name__ == "__main__":
 
     # init dates
     today = datetime.datetime.today()
-    yesterday = string_date(today - datetime.timedelta(days=1), format=DATE_FORMAT)
-    tdby = string_date(today - datetime.timedelta(days=DAYS_DELTA), format=DATE_FORMAT)  # the day before yesterday or earlier
+    yesterday = string_date(today - datetime.timedelta(days=1), 
+                            format=DATE_FORMAT)
+    # the day before yesterday or earlier
+    tdby = string_date(today - datetime.timedelta(days=DAYS_DELTA), 
+                       format=DATE_FORMAT)
 
     # init vertica instance and db connection
     v = Vertica(config=vertica_config)
@@ -57,7 +61,8 @@ if __name__ == "__main__":
     # extract regs
     regs = v.query_vertica(query=REGS_QUERY.format(tdby, yesterday, http_ref))
     if check_query_result(regs):
-        regs_columns = ["uid", "cid", "affiliate_id", "utm_campaign", "reg_date", "device"]
+        regs_columns = ["uid", "cid", "affiliate_id", "utm_campaign", 
+                        "reg_date", "device"]
         print(regs[0])
         
         # save results and send events
@@ -80,12 +85,17 @@ if __name__ == "__main__":
         for user in uids:
             # check users in user_base
 
-            check = check_user(user_id=user, userbase=saved_regs, current_users=regs_df, userbase_filename=REGS_FILE)
+            check = check_user(user_id=user, userbase=saved_regs, 
+                               current_users=regs_df, 
+                               userbase_filename=REGS_FILE)
 
-            if check and ("adr_app" in regs_df[regs_df["uid"]==user]["utm_campaign"]):
-                event = regs_df[regs_df["uid"]==user]
+            if check and ("adr_app" in
+                          regs_df[regs_df["uid"] == user]["utm_campaign"]):
+                event = regs_df[regs_df["uid"] == user]
                 event_ts = event["reg_date"].values[0]
-                event_ts_delta = (today - event_ts).total_seconds()*1000  # timedelta between event and current moment
+                
+                # timedelta between event and current moment
+                event_ts_delta = (today - event_ts).total_seconds()*1000
                 if event_ts_delta > 4*60*60*100:
                     event_ts_delta = 0
                 reg_payload = registration(ga_property=constants["UA_ANDROID"], 
@@ -101,10 +111,13 @@ if __name__ == "__main__":
                 print(r.status_code)
                 print(r.text)
             
-            elif check and ("ios_app" in regs_df[regs_df["uid"]==user]["utm_campaign"]):
-                event = regs_df[regs_df["uid"]==user]
+            elif check and ("ios_app" in
+                            regs_df[regs_df["uid"] == user]["utm_campaign"]):
+                event = regs_df[regs_df["uid"] == user]
                 event_ts = event["reg_date"].values[0]
-                event_ts_delta = (today - event_ts).total_seconds()*1000  # timedelta between event and current moment
+
+                # timedelta between event and current moment
+                event_ts_delta = (today - event_ts).total_seconds()*1000
                 if event_ts_delta > 4*60*60*100:
                     event_ts_delta = 0
 
@@ -122,9 +135,11 @@ if __name__ == "__main__":
                 print(r.text)
             
             else:
-                event = regs_df[regs_df["uid"]==user]
+                event = regs_df[regs_df["uid"] == user]
                 event_ts = event["reg_date"].values[0]
-                event_ts_delta = (today - event_ts).total_seconds()*1000  # timedelta between event and current moment
+
+                # timedelta between event and current moment
+                event_ts_delta = (today - event_ts).total_seconds()*1000
                 if event_ts_delta > 4*60*60*100:
                     event_ts_delta = 0
 
